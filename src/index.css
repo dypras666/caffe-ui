@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Great+Vibes&family=Lobster&family=Raleway:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --cafe-brown: #6F4E37;
+  --cafe-cream: #F5E6D3;
+  --cafe-dark: #3E2723;
+  --cafe-light: #FFF8E7;
+  --cafe-accent: #D4A574;
+  --cafe-espresso: #2C1810;
+  --cafe-latte: #E8D5C4;
+  --cafe-mocha: #8B4513;
+  --cafe-white: #FFFEF9;
+}
+
+body {
+  font-family: 'Raleway', sans-serif;
+  background: var(--cafe-light);
+  color: var(--cafe-dark);
+  overflow-x: hidden;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+h1, h2 {
+  font-family: 'Pacifico', cursive;
+  color: var(--cafe-brown);
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+h3 {
+  font-family: 'Lobster', cursive;
+  color: var(--cafe-brown);
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+h1 {
+  font-size: 5rem;
+  margin: 20px 0;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+  @media (max-width: 768px) {
+    font-size: 3rem;
+  }
+}
+
+h2 {
+  font-size: 3.5rem;
+  margin: 15px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+  @media (max-width: 768px) {
+    font-size: 2.2rem;
+  }
+}
+
+h3 {
+  font-size: 2rem;
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cafe-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cafe-brown);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cafe-dark);
+}

@@ -1,0 +1,219 @@
+.brew-service {
+  padding: 6rem 2rem;
+  background: var(--cafe-white);
+  text-align: center;
+}
+
+.brew-service h2 {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+}
+
+.brew-subtitle {
+  font-size: 1.3rem;
+  color: var(--cafe-mocha);
+  margin-bottom: 4rem;
+  font-style: italic;
+}
+
+.brew-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.brew-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  text-align: left;
+}
+
+.brew-step {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--cafe-light);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  border: 2px solid var(--cafe-cream);
+  position: relative;
+}
+
+.step-number {
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  width: 40px;
+  height: 40px;
+  background: var(--cafe-brown);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 5px 15px rgba(111, 78, 55, 0.3);
+}
+
+.step-icon {
+  color: var(--cafe-brown);
+  flex-shrink: 0;
+}
+
+.step-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--cafe-dark);
+}
+
+.step-content p {
+  color: var(--cafe-mocha);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.brew-animation {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.coffee-cup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: linear-gradient(135deg, var(--cafe-cream) 0%, var(--cafe-latte) 100%);
+  border-radius: 20px;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.coffee-cup {
+  position: relative;
+  width: 150px;
+  height: 180px;
+}
+
+.cup-body {
+  width: 150px;
+  height: 150px;
+  background: white;
+  border-radius: 0 0 40% 40%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  border: 4px solid var(--cafe-brown);
+}
+
+.coffee-liquid {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(180deg, var(--cafe-mocha) 0%, var(--cafe-dark) 100%);
+  border-radius: 0 0 40% 40%;
+}
+
+.cup-handle {
+  position: absolute;
+  right: -35px;
+  top: 30px;
+  width: 50px;
+  height: 70px;
+  border: 4px solid var(--cafe-brown);
+  border-left: none;
+  border-radius: 0 50% 50% 0;
+}
+
+.steam {
+  position: absolute;
+  top: -20px;
+  width: 20px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  filter: blur(8px);
+}
+
+.brew-methods {
+  background: var(--cafe-light);
+  padding: 2rem;
+  border-radius: 20px;
+  border: 2px solid var(--cafe-cream);
+}
+
+.brew-methods h3 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--cafe-dark);
+}
+
+.method-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 5px 15px rgba(111, 78, 55, 0.1);
+  transition: all 0.3s ease;
+}
+
+.method-card h4 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.3rem;
+  color: var(--cafe-brown);
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+}
+
+.method-details {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  color: var(--cafe-mocha);
+  font-size: 0.95rem;
+}
+
+.method-details span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brew-cta {
+  margin-top: 4rem;
+}
+
+@media (max-width: 968px) {
+  .brew-service {
+    padding: 4rem 1rem;
+  }
+
+  .brew-service h2 {
+    font-size: 2.5rem;
+  }
+
+  .brew-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .brew-step {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .step-number {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .coffee-cup {
+    transform: scale(0.8);
+  }
+}

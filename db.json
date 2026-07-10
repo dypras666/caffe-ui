@@ -1,0 +1,348 @@
+{
+  "menu": [
+    {
+      "id": 1,
+      "category": "Hot Beverages",
+      "name": "Espresso",
+      "price": 3.5,
+      "description": "Rich and bold Italian espresso",
+      "image": "☕",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 2,
+      "category": "Hot Beverages",
+      "name": "Cappuccino",
+      "price": 4.5,
+      "description": "Creamy perfection with foam art",
+      "image": "☕",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 3,
+      "category": "Hot Beverages",
+      "name": "Latte",
+      "price": 4.75,
+      "description": "Smooth and milky coffee blend",
+      "image": "☕",
+      "available": true,
+      "popular": false
+    },
+    {
+      "id": 4,
+      "category": "Hot Beverages",
+      "name": "Mocha",
+      "price": 5,
+      "description": "Chocolate bliss with espresso",
+      "image": "☕",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 5,
+      "category": "Cold Beverages",
+      "name": "Iced Americano",
+      "price": 4,
+      "description": "Bold and refreshing iced coffee",
+      "image": "🧊",
+      "available": true,
+      "popular": false
+    },
+    {
+      "id": 6,
+      "category": "Cold Beverages",
+      "name": "Iced Latte",
+      "price": 5,
+      "description": "Smooth and chilled latte",
+      "image": "🧊",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 7,
+      "category": "Cold Beverages",
+      "name": "Frappuccino",
+      "price": 6,
+      "description": "Blended ice coffee delight",
+      "image": "🧊",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 8,
+      "category": "Cold Beverages",
+      "name": "Cold Brew",
+      "price": 4.5,
+      "description": "Slow-steeped magic",
+      "image": "🧊",
+      "available": true,
+      "popular": false
+    },
+    {
+      "id": 9,
+      "category": "Pastries",
+      "name": "Croissant",
+      "price": 3.5,
+      "description": "Buttery and flaky French pastry",
+      "image": "🥐",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 10,
+      "category": "Pastries",
+      "name": "Chocolate Muffin",
+      "price": 4,
+      "description": "Rich and moist chocolate treat",
+      "image": "🧁",
+      "available": true,
+      "popular": false
+    },
+    {
+      "id": 11,
+      "category": "Pastries",
+      "name": "Cinnamon Roll",
+      "price": 4.5,
+      "description": "Sweet and sticky perfection",
+      "image": "🥮",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 12,
+      "category": "Pastries",
+      "name": "Blueberry Scone",
+      "price": 3.75,
+      "description": "Fresh and fruity scone",
+      "image": "🧁",
+      "available": true,
+      "popular": false
+    },
+    {
+      "id": 13,
+      "category": "Specialty",
+      "name": "Affogato",
+      "price": 6.5,
+      "description": "Espresso meets vanilla gelato",
+      "image": "🍨",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 14,
+      "category": "Specialty",
+      "name": "Irish Coffee",
+      "price": 7,
+      "description": "Warm and spirited delight",
+      "image": "🥃",
+      "available": true,
+      "popular": false
+    },
+    {
+      "id": 15,
+      "category": "Specialty",
+      "name": "Chai Latte",
+      "price": 5,
+      "description": "Spiced perfection",
+      "image": "🫖",
+      "available": true,
+      "popular": true
+    },
+    {
+      "id": 16,
+      "category": "Specialty",
+      "name": "Matcha Latte",
+      "price": 5.5,
+      "description": "Green tea goodness",
+      "image": "🍵",
+      "available": true,
+      "popular": true
+    }
+  ],
+  "bookings": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+1 (555) 123-4567",
+      "date": "2026-07-10",
+      "time": "18:00",
+      "guests": 4,
+      "message": "Window seat please",
+      "status": "confirmed"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "phone": "+1 (555) 987-6543",
+      "date": "2026-07-11",
+      "time": "19:30",
+      "guests": 2,
+      "message": "",
+      "status": "pending"
+    },
+    {
+      "name": "Claude Test",
+      "email": "claude@test.com",
+      "phone": "+1234567890",
+      "date": "2026-07-20",
+      "time": "18:00",
+      "guests": 2,
+      "message": "API Test Booking",
+      "status": "pending",
+      "id": 3
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "name": "Sarah Johnson",
+      "rating": 5,
+      "comment": "Best coffee in town! The ambiance is perfect for working.",
+      "date": "2026-07-01",
+      "avatar": "👩"
+    },
+    {
+      "id": 2,
+      "name": "Mike Brown",
+      "rating": 5,
+      "comment": "Amazing espresso and friendly staff. Highly recommended!",
+      "date": "2026-07-03",
+      "avatar": "👨"
+    },
+    {
+      "id": 3,
+      "name": "Emily Davis",
+      "rating": 4,
+      "comment": "Great place! The pastries are delicious. Will come back.",
+      "date": "2026-07-05",
+      "avatar": "👩"
+    },
+    {
+      "id": 4,
+      "name": "David Wilson",
+      "rating": 5,
+      "comment": "Love the cozy atmosphere and the coffee is exceptional!",
+      "date": "2026-07-06",
+      "avatar": "👨"
+    }
+  ],
+  "gallery": [
+    {
+      "id": 1,
+      "title": "Morning Brew",
+      "description": "Fresh espresso shot",
+      "image": "☕",
+      "category": "Coffee"
+    },
+    {
+      "id": 2,
+      "title": "Latte Art",
+      "description": "Beautiful heart design",
+      "image": "☕",
+      "category": "Coffee"
+    },
+    {
+      "id": 3,
+      "title": "Cozy Corner",
+      "description": "Perfect reading spot",
+      "image": "🛋️",
+      "category": "Interior"
+    },
+    {
+      "id": 4,
+      "title": "Fresh Pastries",
+      "description": "Daily baked goods",
+      "image": "🥐",
+      "category": "Food"
+    },
+    {
+      "id": 5,
+      "title": "Garden View",
+      "description": "Outdoor seating",
+      "image": "🌿",
+      "category": "Interior"
+    },
+    {
+      "id": 6,
+      "title": "Specialty Drinks",
+      "description": "Seasonal favorites",
+      "image": "🍵",
+      "category": "Coffee"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "title": "Jazz Night",
+      "date": "2026-07-15",
+      "time": "19:00",
+      "description": "Live jazz music every Friday evening",
+      "price": "Free entry",
+      "image": "🎵"
+    },
+    {
+      "id": 2,
+      "title": "Coffee Tasting",
+      "date": "2026-07-20",
+      "time": "14:00",
+      "description": "Learn about different coffee origins",
+      "price": "$15 per person",
+      "image": "☕"
+    },
+    {
+      "id": 3,
+      "title": "Barista Workshop",
+      "date": "2026-07-25",
+      "time": "10:00",
+      "description": "Master the art of coffee making",
+      "price": "$50 per person",
+      "image": "👨‍🍳"
+    }
+  ],
+  "staff": [
+    {
+      "id": 1,
+      "name": "Alessandro Rossi",
+      "position": "Head Barista",
+      "experience": "15 years",
+      "specialty": "Espresso & Latte Art",
+      "image": "👨‍🍳"
+    },
+    {
+      "id": 2,
+      "name": "Maria Garcia",
+      "position": "Pastry Chef",
+      "experience": "10 years",
+      "specialty": "French Pastries",
+      "image": "👩‍🍳"
+    },
+    {
+      "id": 3,
+      "name": "James Chen",
+      "position": "Barista",
+      "experience": "5 years",
+      "specialty": "Cold Brew & Pour Over",
+      "image": "👨"
+    },
+    {
+      "id": 4,
+      "name": "Sophie Martin",
+      "position": "Manager",
+      "experience": "8 years",
+      "specialty": "Customer Service",
+      "image": "👩"
+    }
+  ],
+  "stats": {
+    "customers": "10,000+",
+    "varieties": "50+",
+    "experience": "15+",
+    "rating": 5,
+    "daily_cups": "500+",
+    "locations": 1
+  }
+}

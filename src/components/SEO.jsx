@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
+import { useState, useEffect } from 'react';
 
-const SITE_NAME = 'Café Azzura';
 const SITE_URL = 'https://cafeazzura.com';
 const DEFAULT_IMAGE = '/og-image.jpg';
 
@@ -15,8 +15,18 @@ export default function SEO({
   articleSection,
   tags,
 }) {
-  const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
-  const desc = description || 'Cafe Azzura - Tempat dimana setiap tegukan bercerita. Nikmati kopi artisan, suasana nyaman, dan pelayanan terbaik.';
+  const [cafeName, setCafeName] = useState('Café Azzura');
+  useEffect(() => {
+    const stored = sessionStorage.getItem('cafe_name');
+    if (stored) { setCafeName(stored); return; }
+    fetch('/api/settings/cafe_name').then(r => r.json()).then(d => {
+      const n = d?.setting_value || d?.value || 'Cafe';
+      sessionStorage.setItem('cafe_name', n);
+      setCafeName(n);
+    }).catch(() => {});
+  }, []);
+  const pageTitle = title ? `${title} | ${cafeName}` : cafeName;
+  const desc = description || `${cafeName} - Nikmati kopi artisan, suasana nyaman, dan pelayanan terbaik.`;
   const url = canonical || SITE_URL;
 
   return (

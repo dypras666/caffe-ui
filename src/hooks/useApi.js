@@ -29,7 +29,7 @@ export const useFetch = (endpoint, deps = []) => {
 // Menu from real backend — GET /products?is_available=true
 export const useMenu = () => {
   const { data, loading, error } = useFetch('/products?limit=100');
-  const products = data?.products || [];
+  const products = data?.products || data || [];
 
   // Group by category_name
   const categories = products.reduce((acc, item) => {

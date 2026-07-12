@@ -8,10 +8,14 @@ import './Navbar.css';
 const Navbar = ({ scrollToSection }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
+  const [cafeName, setCafeName] = useState('Cafe');
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetch('/api/settings/cafe_name').then(r => r.json()).then(d => {
+      setCafeName(d?.setting_value || d?.value || 'Cafe');
+    }).catch(() => {});
     const saved = localStorage.getItem('selected_branch');
     if (saved) { try { setSelectedBranch(JSON.parse(saved)); } catch {} }
   }, []);
@@ -41,7 +45,7 @@ const Navbar = ({ scrollToSection }) => {
           transition={{ type: 'spring', stiffness: 300 }}
         >
           <Coffee size={32} />
-          <span>Café Azzura</span>
+          <span>{cafeName}</span>
         </motion.div>
 
         <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>

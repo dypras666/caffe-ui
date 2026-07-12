@@ -220,7 +220,7 @@ export default function PostDetailPage() {
             <div className="post-detail-gallery">
               <h3>Galeri Foto</h3>
               <div className="post-detail-gallery-grid">
-                {post.gallery.map((g, i) => (
+                {(post.gallery || []).map((g, i) => (
                   <img key={i} src={mediaUrl(g.image_url)}
                     alt="" loading="lazy" />
                 ))}

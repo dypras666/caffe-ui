@@ -359,7 +359,7 @@ function BookingForm({ onDone, onCancel }) {
         phone: form.phone,
         booking_date: form.booking_date,
         booking_time: form.booking_time + ':00',
-        guests: parseInt(form.guests),
+        guests: parseInt(form.guests) || 1,
         branch_id: form.branch_id || null,
         special_request: form.special_request || null,
       };

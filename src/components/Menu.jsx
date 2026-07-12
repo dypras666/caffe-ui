@@ -29,7 +29,7 @@ const Menu = () => {
     icon: getIcon(category),
     title: category,
     items: items
-      .filter(item => item.is_available && item.status === 'active')
+      .filter(item => item.is_available)
       .map(item => ({
         name: item.name,
         price: formatPrice(item.price),

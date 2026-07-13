@@ -42,7 +42,7 @@ export default function SEO({
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:site_name" content={cafeName} />
       <meta property="og:locale" content="id_ID" />
 
       {/* Twitter Card */}
@@ -63,14 +63,14 @@ export default function SEO({
           '@context': 'https://schema.org',
           '@type': type === 'article' ? 'Article' : 'WebSite',
           name: pageTitle,
-          headline: title || SITE_NAME,
+          headline: title || cafeName,
           description: desc,
           url,
           image,
           ...(type === 'article' && published_time ? {
             datePublished: published_time,
-            author: { '@type': 'Person', name: author || SITE_NAME },
-            publisher: { '@type': 'Organization', name: SITE_NAME },
+            author: { '@type': 'Person', name: author || cafeName },
+            publisher: { '@type': 'Organization', name: cafeName },
           } : {}),
         })}
       </script>

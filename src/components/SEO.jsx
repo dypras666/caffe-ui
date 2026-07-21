@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
 
-const SITE_URL = 'https://cafeazzura.com';
+const SITE_URL = typeof window !== 'undefined' ? window.location.origin : '';
 const DEFAULT_IMAGE = '/og-image.jpg';
 
 export default function SEO({
@@ -15,18 +15,17 @@ export default function SEO({
   articleSection,
   tags,
 }) {
-  const [cafeName, setCafeName] = useState('Café Azzura');
+  const [cafeName, setCafeName] = useState(() => sessionStorage.getItem('cafe_name') || '');
   useEffect(() => {
-    const stored = sessionStorage.getItem('cafe_name');
-    if (stored) { setCafeName(stored); return; }
+    if (cafeName) return;
     fetch('/api/settings/cafe_name').then(r => r.json()).then(d => {
-      const n = d?.setting_value || d?.value || 'Cafe';
-      sessionStorage.setItem('cafe_name', n);
-      setCafeName(n);
+      const n = d?.setting?.setting_value || d?.setting_value || d?.value || '';
+      if (n) { sessionStorage.setItem('cafe_name', n); setCafeName(n); }
     }).catch(() => {});
   }, []);
-  const pageTitle = title ? `${title} | ${cafeName}` : cafeName;
-  const desc = description || `${cafeName} - Nikmati kopi artisan, suasana nyaman, dan pelayanan terbaik.`;
+  const displayName = cafeName || 'Cafe';
+  const pageTitle = title ? `${title} | ${displayName}` : displayName;
+  const desc = description || `${displayName} - Pesan makanan & minuman favorit Anda dengan mudah.`;
   const url = canonical || SITE_URL;
 
   return (

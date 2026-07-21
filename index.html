@@ -4,10 +4,27 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Café Azzura - Where Every Sip Tells a Story. Experience artisanal coffee, cozy ambiance, and exceptional service." />
-    <meta name="keywords" content="cafe, coffee, espresso, latte, cappuccino, coffee shop, cafe azzura" />
-    <meta name="author" content="Azzura" />
-    <title>☕ Café Azzura - Artisanal Coffee Experience</title>
+    <meta name="description" content="Pesan makanan & minuman favoritmu dengan mudah." />
+    <title>Cafe</title>
+    <script>
+      // Set title & meta from API before React loads
+      (function() {
+        var cached = sessionStorage.getItem('cafe_name');
+        if (cached) { document.title = cached; return; }
+        fetch('/api/settings/cafe_name')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var n = (d && (d.value || (d.setting && d.setting.setting_value) || d.setting_value)) || '';
+            if (n) {
+              document.title = n;
+              sessionStorage.setItem('cafe_name', n);
+              var m = document.querySelector('meta[name="description"]');
+              if (m) m.setAttribute('content', n + ' - Pesan makanan & minuman favoritmu dengan mudah.');
+            }
+          })
+          .catch(function() {});
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

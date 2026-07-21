@@ -13,8 +13,11 @@ const Navbar = ({ scrollToSection }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const cached = sessionStorage.getItem('cafe_name');
+    if (cached) { setCafeName(cached); }
     fetch('/api/settings/cafe_name').then(r => r.json()).then(d => {
-      setCafeName(d?.setting_value || d?.value || 'Cafe');
+      const n = d?.setting?.setting_value || d?.setting_value || d?.value || '';
+      if (n) { setCafeName(n); sessionStorage.setItem('cafe_name', n); }
     }).catch(() => {});
     const saved = localStorage.getItem('selected_branch');
     if (saved) { try { setSelectedBranch(JSON.parse(saved)); } catch {} }

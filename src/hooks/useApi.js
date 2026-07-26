@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
+import { DEMO_PRODUCTS, DEMO_SETTINGS, DEMO_GALLERY } from '../lib/demoData';
+
+const IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
 
 // Generic fetch hook against real backend
 export const useFetch = (endpoint, deps = []) => {
@@ -28,6 +31,15 @@ export const useFetch = (endpoint, deps = []) => {
 
 // Menu from real backend — GET /products?is_available=true
 export const useMenu = () => {
+  if (IS_DEMO) {
+    const categories = DEMO_PRODUCTS.reduce((acc, item) => {
+      const cat = item.category_name || 'Lainnya';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(item);
+      return acc;
+    }, {});
+    return { data: DEMO_PRODUCTS, categories, loading: false, error: null };
+  }
   const { data, loading, error } = useFetch('/products?limit=100');
   const products = data?.products || data || [];
 
@@ -49,7 +61,10 @@ export const useBookings = () => useFetch('/bookings');
 export const useReviews = () => ({ data: [], loading: false, error: null });
 
 // Gallery
-export const useGallery = () => useFetch('/media');
+export const useGallery = () => {
+  if (IS_DEMO) return { data: DEMO_GALLERY, loading: false, error: null };
+  return useFetch('/media');
+};
 
 // Events — no backend yet, static
 export const useEvents = () => ({ data: [], loading: false, error: null });
@@ -62,6 +77,7 @@ export const useStats = () => useFetch('/dashboard/stats');
 
 // Settings (public)
 export const useSettings = () => {
+  if (IS_DEMO) return DEMO_SETTINGS;
   const { data } = useFetch('/settings');
   const settings = (data?.settings || []).reduce((acc, s) => {
     acc[s.setting_key] = s.setting_value;

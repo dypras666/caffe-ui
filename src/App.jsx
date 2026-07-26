@@ -16,13 +16,16 @@ import BranchSelectorPage from './pages/BranchSelectorPage';
 import KasirLoginPage from './pages/kasir/KasirLoginPage';
 import KasirDashboardPage from './pages/kasir/KasirDashboardPage';
 import SetupWizardPage from './pages/SetupWizardPage';
+import PremiumLandingPage from './pages/PremiumLandingPage';
 import SEO from './components/SEO';
 import './App.css';
+
+const BASENAME = import.meta.env.VITE_BUILD_BASE || '/';
 
 export default function App() {
   return (
     <HelmetProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={BASENAME}>
         <AuthProvider>
           <Routes>
             <Route path="/" element={<RouterRoot />} />
@@ -60,6 +63,9 @@ export default function App() {
 
             {/* Setup Wizard */}
             <Route path="/setup" element={<SetupWizardPage />} />
+
+            {/* Template preview routes (read-only, no buying) */}
+            <Route path="/templates/premium-landing" element={<PremiumLandingPage />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFoundPage />} />

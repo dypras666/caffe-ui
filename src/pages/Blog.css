@@ -28,6 +28,8 @@
 }
 
 .blog-header h1 {
+  font-family: 'Raleway', sans-serif !important;
+  letter-spacing: normal !important;
   font-size: 3rem;
   font-weight: 700;
   color: #fff;
@@ -146,6 +148,7 @@
 }
 
 .blog-card-image {
+  display: block;
   position: relative;
   height: 200px;
   overflow: hidden;
@@ -209,6 +212,8 @@
 }
 
 .blog-card-title {
+  font-family: 'Raleway', sans-serif !important;
+  letter-spacing: normal !important;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--cafe-dark);
@@ -387,6 +392,8 @@
 }
 
 .post-detail-header-content h1 {
+  font-family: 'Raleway', sans-serif !important;
+  letter-spacing: normal !important;
   font-size: 2.5rem;
   font-weight: 700;
   color: #fff;
@@ -451,6 +458,8 @@
 }
 
 .post-detail-content h2 {
+  font-family: 'Raleway', sans-serif !important;
+  letter-spacing: normal !important;
   font-size: 1.6rem;
   font-weight: 700;
   margin-top: 2.5rem;
@@ -459,6 +468,8 @@
 }
 
 .post-detail-content h3 {
+  font-family: 'Raleway', sans-serif !important;
+  letter-spacing: normal !important;
   font-size: 1.3rem;
   font-weight: 700;
   margin-top: 2rem;

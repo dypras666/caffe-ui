@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/member/AuthModal';
 import api from '../lib/api';
+import { mediaUrl } from '../lib/utils';
 import './TableOrderPage.css';
 
 const CAFE_NAME = 'Café Azzura';
@@ -358,8 +359,8 @@ export default function TableOrderPage() {
             whileTap={{ scale: product.stock === 0 ? 1 : 0.96 }}
             onClick={() => product.stock !== 0 && handleProductTap(product)}
           >
-            {product.image_url
-              ? <img className="to-card-img" src={product.image_url} alt={product.name} loading="lazy" />
+            {product.image || product.image_url
+              ? <img className="to-card-img" src={mediaUrl(product.image || product.image_url)} alt={product.name} loading="lazy" />
               : <div className="to-card-img-placeholder"><Coffee size={28} /></div>
             }
             <div className="to-card-body">

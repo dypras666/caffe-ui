@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Coffee, Menu, X, User, LogIn, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
@@ -9,8 +9,10 @@ const Navbar = ({ scrollToSection }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [cafeName, setCafeName] = useState('Cafe');
+  const [customMenus, setCustomMenus] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const cached = sessionStorage.getItem('cafe_name');
@@ -21,18 +23,71 @@ const Navbar = ({ scrollToSection }) => {
     }).catch(() => {});
     const saved = localStorage.getItem('selected_branch');
     if (saved) { try { setSelectedBranch(JSON.parse(saved)); } catch {} }
+
+    // Fetch custom navigation menus
+    fetch('/api/navigation').then(r => r.json()).then(d => {
+      if (d?.menus?.length > 0) {
+        setCustomMenus(d.menus);
+      }
+    }).catch(() => {});
   }, []);
 
-  const menuItems = [
-    { name: 'Home', id: 'home' },
-    { name: 'Menu', id: 'menu' },
-    { name: 'Blog', id: 'blog', link: '/blog' },
-    { name: 'Virtual Tour', id: 'tour' },
-    { name: 'Brew Service', id: 'brew' },
-    { name: 'Booking', id: 'booking' },
-    { name: 'Gallery', id: 'gallery' },
-    { name: 'Contact', id: 'contact' },
+  // Default fallback menus (used if API returns nothing)
+  const defaultMenuItems = [
+    { label: 'Home', url: '/#home' },
+    { label: 'Menu', url: '/#menu' },
+    { label: 'Blog', url: '/blog' },
+    { label: 'Virtual Tour', url: '/#tour' },
+    { label: 'Brew Service', url: '/#brew' },
+    { label: 'Booking', url: '/#booking' },
+    { label: 'Gallery', url: '/#gallery' },
+    { label: 'Contact', url: '/#contact' },
   ];
+
+  const menuItems = customMenus || defaultMenuItems;
+
+  const handleMenuClick = (e, item) => {
+    setIsOpen(false);
+
+    const url = item.url || '';
+
+    // External link
+    if (url.startsWith('http')) {
+      if (item.target === '_blank') {
+        window.open(url, '_blank');
+      } else {
+        window.location.href = url;
+      }
+      e.preventDefault();
+      return;
+    }
+
+    // Internal page link (e.g. /blog, /member/login)
+    if (url.startsWith('/') && !url.includes('#')) {
+      e.preventDefault();
+      navigate(url);
+      return;
+    }
+
+    // Hash link (e.g. /#menu, /#contact)
+    if (url.includes('#')) {
+      e.preventDefault();
+      const sectionId = url.split('#')[1];
+
+      // If we're on the landing page, scroll to section
+      if (location.pathname === '/') {
+        scrollToSection(sectionId);
+      } else {
+        // Navigate to home first, then scroll
+        navigate('/');
+        setTimeout(() => {
+          const element = document.getElementById(sectionId);
+          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+      return;
+    }
+  };
 
   return (
     <motion.nav
@@ -52,32 +107,21 @@ const Navbar = ({ scrollToSection }) => {
         </motion.div>
 
         <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
-          {menuItems.map((item, index) =>
-            item.link ? (
-              <Link key={item.id} to={item.link} onClick={() => setIsOpen(false)}
-                className="navbar-link"
-                style={{ opacity: 1 }}
-              >
-                {item.name}
-              </Link>
-            ) : (
-              <motion.a
-                key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection(item.id);
-                  setIsOpen(false);
-                }}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.1, color: '#D4A574' }}
-              >
-                {item.name}
-              </motion.a>
-            )
-          )}
+          {menuItems.map((item, index) => (
+            <motion.a
+              key={item.id || index}
+              href={item.url || '#'}
+              target={item.target === '_blank' ? '_blank' : undefined}
+              rel={item.target === '_blank' ? 'noopener noreferrer' : undefined}
+              onClick={(e) => handleMenuClick(e, item)}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.1, color: '#D4A574' }}
+            >
+              {item.label || item.name}
+            </motion.a>
+          ))}
         </div>
 
         <div className="navbar-right">

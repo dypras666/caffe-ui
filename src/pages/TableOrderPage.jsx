@@ -5,6 +5,7 @@ import {
   CreditCard, Banknote, ChevronDown, ChevronRight, Clock, Receipt,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import AuthModal from '../components/member/AuthModal';
 import api from '../lib/api';
 import { mediaUrl } from '../lib/utils';
@@ -20,6 +21,8 @@ export default function TableOrderPage() {
   const qrToken = params.get('qr');
   const tableParam = params.get('table') || '';
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [cafeName, setCafeName] = useState('Café Azzura');
 
   // phases: loading | invalid | auth | browsing | success
   const [phase, setPhase] = useState('loading');
@@ -119,6 +122,8 @@ export default function TableOrderPage() {
             || d.table_order_payment
             || 'both';
           setPaymentSetting(val);
+          const nameVal = list.find(s => s.key === 'site_name' || s.key === 'cafe_name')?.value || 'Café Azzura';
+          setCafeName(nameVal);
         }
       } catch (err) {
         console.error('Load catalog error:', err);
@@ -267,7 +272,7 @@ export default function TableOrderPage() {
       <div className="to-auth-bg">
         <div className="to-auth-intro">
           <Coffee size={48} />
-          <h2>{CAFE_NAME}</h2>
+          <h2>{cafeName}</h2>
           {tableNumber && <p className="to-auth-table">Meja <strong>{tableNumber}</strong></p>}
           <p className="to-auth-hint">Login untuk mulai memesan</p>
         </div>
@@ -318,7 +323,7 @@ export default function TableOrderPage() {
       <header className="to-header">
         <div className="to-header-brand">
           <Coffee size={22} />
-          <span>{CAFE_NAME}</span>
+          <span>{cafeName}</span>
         </div>
         <div className="to-header-table">
           <span className="to-table-label">Meja</span>

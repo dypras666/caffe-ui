@@ -277,7 +277,7 @@
 /* ── Floating cart button ─────────────────────────────────────────────────── */
 .to-fab {
   position: fixed;
-  bottom: 1.25rem;
+  bottom: calc(65px + 1.25rem);
   left: 50%;
   transform: translateX(-50%);
   z-index: 200;
@@ -680,4 +680,44 @@
   justify-content: center;
   padding: 2rem;
   color: var(--cafe-brown, #6F4E37);
+}
+
+/* ── Bottom Navigation ── */
+.to-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 40;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+}
+.to-bottom-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #8E7A6E;
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+  height: 100%;
+}
+.to-bottom-item.active {
+  color: var(--cafe-primary, #C08D5D);
+}
+.to-bottom-item:active {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* Adjust page padding for bottom nav */
+.to-page {
+  padding-bottom: 80px;
 }

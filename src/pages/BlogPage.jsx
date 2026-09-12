@@ -41,7 +41,7 @@ export default function BlogPage() {
           <div className="blog-header-decoration" />
         </motion.div>
 
-        <section className="max-w-6xl mx-auto px-4 py-6">
+        <section className="blog-container">
           {/* Filter Bar */}
           <div className="blog-filter-bar">
             {['', 'article', 'news', 'video', 'faq'].map(t => (

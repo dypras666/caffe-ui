@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import './member.css';
 
 const NAV_TABS = [
-  { to: '/',                label: 'Beranda',  Icon: Home },
+  { to: '/table-order',     label: 'Beranda',  Icon: Home },
   { to: '/member/profile',  label: 'Akun',     Icon: User },
   { to: '/member/orders',   label: 'Pesanan',  Icon: ShoppingBag },
   { to: '/member/bookings', label: 'Booking',  Icon: Calendar },
@@ -21,7 +21,7 @@ export default function MemberLayout({ children }) {
       <header className="member-header">
         <div className="member-header-logo">
           <Coffee size={20} />
-          Café Azzura
+          {sessionStorage.getItem('cafe_name') || 'Café Azzura'}
         </div>
         <div className="member-header-right">
           {user && (

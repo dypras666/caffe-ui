@@ -9,18 +9,33 @@ const Navbar = ({ scrollToSection }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [cafeName, setCafeName] = useState('Cafe');
+  const [siteLogo, setSiteLogo] = useState(null);
   const [customMenus, setCustomMenus] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const cached = sessionStorage.getItem('cafe_name');
-    if (cached) { setCafeName(cached); }
-    fetch('/api/settings/cafe_name').then(r => r.json()).then(d => {
-      const n = d?.setting?.setting_value || d?.setting_value || d?.value || '';
-      if (n) { setCafeName(n); sessionStorage.setItem('cafe_name', n); }
+    const cachedName = sessionStorage.getItem('cafe_name');
+    if (cachedName) { setCafeName(cachedName); }
+    const cachedLogo = sessionStorage.getItem('site_logo');
+    if (cachedLogo) { setSiteLogo(cachedLogo); }
+    
+    fetch('/api/settings').then(r => r.json()).then(d => {
+      if (d?.settings) {
+        const nameSetting = d.settings.find(s => s.setting_key === 'cafe_name');
+        if (nameSetting?.setting_value) {
+          setCafeName(nameSetting.setting_value);
+          sessionStorage.setItem('cafe_name', nameSetting.setting_value);
+        }
+        const logoSetting = d.settings.find(s => s.setting_key === 'site_logo');
+        if (logoSetting?.setting_value) {
+          setSiteLogo(logoSetting.setting_value);
+          sessionStorage.setItem('site_logo', logoSetting.setting_value);
+        }
+      }
     }).catch(() => {});
+    
     const saved = localStorage.getItem('selected_branch');
     if (saved) { try { setSelectedBranch(JSON.parse(saved)); } catch {} }
 
@@ -101,9 +116,17 @@ const Navbar = ({ scrollToSection }) => {
           className="navbar-logo"
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: 'spring', stiffness: 300 }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+          onClick={() => { if(location.pathname === '/') scrollToSection('home'); else navigate('/'); }}
         >
-          <Coffee size={32} />
-          <span>{cafeName}</span>
+          {siteLogo ? (
+            <img src={siteLogo} alt={cafeName} style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
+          ) : (
+            <>
+              <Coffee size={32} />
+              <span>{cafeName}</span>
+            </>
+          )}
         </motion.div>
 
         <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>

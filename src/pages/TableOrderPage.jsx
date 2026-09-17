@@ -2,11 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Coffee, ShoppingCart, Plus, Minus, X, CheckCircle, Loader,
-  CreditCard, Banknote, ChevronDown, ChevronRight, Clock, Receipt,
+  CreditCard, Banknote, ChevronDown, ChevronRight, Clock, Receipt, User, FileText, Menu as MenuIcon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AuthModal from '../components/member/AuthModal';
+import { QRCodeSVG } from 'qrcode.react';
+import { generateDynamicQris } from '../lib/qris';
 import api from '../lib/api';
 import { mediaUrl } from '../lib/utils';
 import './TableOrderPage.css';
@@ -18,8 +20,17 @@ const fmt = (n) =>
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function TableOrderPage() {
   const params = new URLSearchParams(window.location.search);
-  const qrToken = params.get('qr');
-  const tableParam = params.get('table') || '';
+  let qrToken = params.get('qr');
+  let tableParam = params.get('table') || '';
+  
+  if (qrToken) {
+    sessionStorage.setItem('active_qr', qrToken);
+    sessionStorage.setItem('active_table', tableParam);
+  } else {
+    qrToken = sessionStorage.getItem('active_qr');
+    tableParam = sessionStorage.getItem('active_table') || '';
+  }
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const [cafeName, setCafeName] = useState('Café Azzura');
@@ -35,7 +46,8 @@ export default function TableOrderPage() {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [paymentMethods, setPaymentMethods] = useState([]);
-  const [paymentSetting, setPaymentSetting] = useState('both'); // 'kasir'|'direct'|'both'
+  const [paymentSetting, setPaymentSetting] = useState('both');
+  const [qrisString, setQrisString] = useState(''); // 'kasir'|'direct'|'both'
 
   // Cart state
   const [cart, setCart] = useState([]);
@@ -118,11 +130,12 @@ export default function TableOrderPage() {
         if (sRes.status === 'fulfilled') {
           const d = sRes.value.data;
           const list = Array.isArray(d.settings) ? d.settings : (Array.isArray(d) ? d : []);
-          const val = list.find(s => s.key === 'table_order_payment')?.value
+          const val = list.find(s => s.setting_key === 'table_order_payment')?.setting_value
             || d.table_order_payment
             || 'both';
           setPaymentSetting(val);
-          const nameVal = list.find(s => s.key === 'site_name' || s.key === 'cafe_name')?.value || 'Café Azzura';
+          setQrisString(list.find(s => s.setting_key === 'qris_string')?.setting_value || '');
+          const nameVal = list.find(s => s.setting_key === 'site_name' || s.setting_key === 'cafe_name')?.setting_value || 'Café Azzura';
           setCafeName(nameVal);
         }
       } catch (err) {
@@ -153,6 +166,20 @@ export default function TableOrderPage() {
     setCart(prev => prev.map(i => i.cartKey === cartKey ? { ...i, qty: Math.max(0, i.qty + delta) } : i).filter(i => i.qty > 0));
   };
 
+  const getDiscountedPrice = (product) => {
+    if (!product) return 0;
+    let p = parseFloat(product.price) || 0;
+    let meta = null;
+    try { meta = typeof product.meta_data === 'string' ? JSON.parse(product.meta_data) : product.meta_data; } catch(e){}
+    if (meta?.promo_voucher) {
+      const v = meta.promo_voucher;
+      const dv = parseFloat(v.discount_value) || 0;
+      if (v.discount_type === 'percent') p = Math.max(0, p - (p * dv / 100));
+      else p = Math.max(0, p - dv);
+    }
+    return p;
+  };
+
   // ── Product tap: open variant picker or add directly ───────────────────────
   const handleProductTap = async (product) => {
     const needsPicker = product.has_variants
@@ -170,35 +197,61 @@ export default function TableOrderPage() {
       try {
         const { data } = await api.get(`/variants/${product.id}`);
         setVariantData(data);
+        
+        // Auto-select defaults
+        const initialVars = {};
+        (data.variant_groups || []).forEach(g => {
+          const defs = (g.options || []).filter(o => o.is_default);
+          if (defs.length > 0) initialVars[g.id] = defs;
+        });
+        setVariantSelections(initialVars);
       } catch {
         setVariantData({ variant_groups: [], addon_groups: [] });
       } finally {
         setVariantLoading(false);
       }
     } else {
-      addToCart({ cartKey: String(product.id), productId: product.id, name: product.name, price: product.price, qty: 1, variants: [], addons: [], note: '' });
+      addToCart({ cartKey: String(product.id), productId: product.id, name: product.name, price: getDiscountedPrice(product), qty: 1, variants: [], addons: [], note: '' });
     }
   };
 
   const computedVariantPrice = useMemo(() => {
     if (!variantProduct) return 0;
-    let total = variantProduct.price;
-    Object.values(variantSelections).forEach(v => { if (v?.price_add) total += Number(v.price_add); });
-    Object.values(addonSelections).forEach(arr => (arr || []).forEach(a => { if (a?.price) total += Number(a.price); }));
+    let total = getDiscountedPrice(variantProduct);
+    Object.values(variantSelections).forEach(arr => {
+      (arr || []).forEach(v => {
+        if (v?.price_modifier) total += Number(v.price_modifier);
+      });
+    });
+    Object.values(addonSelections).forEach(arr => (arr || []).forEach(a => { if (a?.price) total += Number(a.price) * (a.qty || 1); }));
     return total;
   }, [variantProduct, variantSelections, addonSelections]);
 
   const confirmVariant = () => {
-    const vKeys = Object.entries(variantSelections).map(([g, v]) => `${g}:${v?.id}`).join('|');
-    const aKeys = Object.entries(addonSelections).flatMap(([g, arr]) => (arr || []).map(a => `${g}:${a.id}`)).join('|');
+    // Validate required variant groups
+    let missing = null;
+    (variantData?.variant_groups || []).forEach(g => {
+      if (g.is_required) {
+        if (!variantSelections[g.id] || variantSelections[g.id].length === 0) {
+          if (!missing) missing = g.name;
+        }
+      }
+    });
+    if (missing) {
+      alert(`Harap pilih opsi untuk ${missing}`);
+      return;
+    }
+
+    const vKeys = Object.entries(variantSelections).flatMap(([g, arr]) => (arr || []).map(v => `${g}:${v.id}`)).join('|');
+    const aKeys = Object.entries(addonSelections).flatMap(([g, arr]) => (arr || []).map(a => `${g}:${a.id}x${a.qty || 1}`)).join('|');
     addToCart({
       cartKey: `${variantProduct.id}~${vKeys}~${aKeys}~${variantNote}`,
       productId: variantProduct.id,
       name: variantProduct.name,
       price: computedVariantPrice,
       qty: variantQty,
-      variants: Object.values(variantSelections).filter(Boolean),
-      addons: Object.values(addonSelections).flat().filter(Boolean),
+      variants: Object.entries(variantSelections).flatMap(([g, arr]) => (arr || []).map(v => ({ ...v, group_id: Number(g) }))),
+      addons: Object.entries(addonSelections).flatMap(([g, arr]) => (arr || []).map(a => ({ ...a, group_id: Number(g) }))),
       note: variantNote,
     });
     setVariantProduct(null);
@@ -209,6 +262,16 @@ export default function TableOrderPage() {
     setSubmitError('');
     setSubmitting(true);
     try {
+      let uniqueCode = 0;
+      if (paymentMode === 'direct' && selectedPayment === 'qris') {
+        try {
+          const { data: uData } = await api.get('/orders/qris/unique-code');
+          uniqueCode = uData.kode_unik || 0;
+        } catch(e) {
+          uniqueCode = Math.floor(Math.random() * 900) + 100;
+        }
+      }
+
       const { data } = await api.post('/orders', {
         customer_name: user?.name || '',
         customer_email: user?.email || '',
@@ -220,14 +283,25 @@ export default function TableOrderPage() {
         payment_method: paymentMode === 'kasir' ? 'cash' : selectedPayment,
         payment_status: 'pending',
         notes: orderNote,
+        voucher_code: cart.reduce((found, item) => {
+          if (found) return found;
+          const product = products.find(p => p.id === item.productId);
+          if (product) {
+            let meta = null;
+            try { meta = typeof product.meta_data === 'string' ? JSON.parse(product.meta_data) : product.meta_data; } catch(e){}
+            if (meta?.promo_voucher?.code) return meta.promo_voucher.code;
+          }
+          return found;
+        }, null),
         items: cart.map(i => ({
           product_id: i.productId,
           quantity: i.qty,
           notes: i.note || '',
-          variants: i.variants,
-          addons: i.addons,
+          variants: (i.variants || []).map(v => ({ group_id: v.group_id, option_id: v.id })),
+          addons: (i.addons || []).map(a => ({ addon_id: a.id, qty: a.qty || 1 })),
         })),
       });
+      data.uniqueCode = uniqueCode;
       setOrderResult(data);
       setPhase('success');
     } catch (err) {
@@ -240,8 +314,21 @@ export default function TableOrderPage() {
   // ── Filtered products ───────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     if (activeCategory === 'all') return products;
-    return products.filter(p => p.category_id === activeCategory || p.category?.id === activeCategory);
-  }, [products, activeCategory]);
+    const activeCatObj = categories.find(c => c.id === activeCategory);
+    const isPromoTab = activeCatObj && activeCatObj.slug === 'promo';
+    
+    return products.filter(p => {
+      if (p.category_id === activeCategory || p.category?.id === activeCategory) return true;
+      if (isPromoTab) {
+        let meta = null;
+        if (p.meta_data) {
+          try { meta = typeof p.meta_data === 'string' ? JSON.parse(p.meta_data) : p.meta_data; } catch(e){}
+        }
+        if (meta?.promo_end_time) return true;
+      }
+      return false;
+    });
+  }, [products, activeCategory, categories]);
 
   // ═══════════════════════════════ RENDER ════════════════════════════════════
 
@@ -284,28 +371,52 @@ export default function TableOrderPage() {
   }
 
   if (phase === 'success') {
-    const orderNum = orderResult?.order?.order_number || orderResult?.order_number || orderResult?.id || '—';
+    const orderObj = orderResult?.order || orderResult || {};
+    const orderNum = orderObj.order_number || orderObj.id || '—';
+    const isPending = orderObj.payment_status === 'pending';
+
     return (
       <div className="to-fullscreen to-success">
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
-          <CheckCircle size={72} className="to-success-icon" />
+          {isPending ? <Clock size={72} className="to-success-icon text-amber-500" /> : <CheckCircle size={72} className="to-success-icon" />}
         </motion.div>
-        <h2>Pesanan Diterima!</h2>
+        <h2>{isPending ? 'Menunggu Pembayaran' : 'Pesanan Diterima!'}</h2>
         <p className="to-order-num">#{orderNum}</p>
-        <p className="to-success-msg">Pesanan Anda sedang diproses oleh barista kami.</p>
-        <div className="to-success-eta">
-          <Clock size={16} />
-          <span>Estimasi siap 10–15 menit</span>
-        </div>
+        <p className="to-success-msg">
+          {isPending 
+            ? 'Silakan selesaikan pembayaran agar pesanan dapat diproses.' 
+            : 'Pesanan Anda sedang diproses oleh barista kami.'}
+        </p>
+        
+        {!isPending && (
+          <div className="to-success-eta">
+            <Clock size={16} />
+            <span>Estimasi siap 10–15 menit</span>
+          </div>
+        )}
+        
         {paymentMode === 'kasir' && (
           <div className="to-success-pay-note">
             <Receipt size={16} />
             <span>Silakan bayar ke kasir</span>
           </div>
         )}
+        
+        {paymentMode === 'direct' && selectedPayment === 'qris' && qrisString && (
+          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'white', padding: '1rem', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#6F4E37', marginBottom: '0.5rem' }}>Scan untuk Bayar Rp {((orderResult?.order?.total || orderResult?.total || 0) + (orderResult?.uniqueCode || 0)).toLocaleString('id')}</span>
+            <QRCodeSVG value={generateDynamicQris(qrisString, (orderResult?.order?.total || orderResult?.total || 0) + (orderResult?.uniqueCode || 0))} size={180} level="M" />
+            <span style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem', textAlign: 'center' }}>Gunakan aplikasi e-Wallet atau Mobile Banking Anda.</span>
+          </div>
+        )}
+        {paymentMode === 'direct' && selectedPayment === 'qris' && !qrisString && (
+          <div className="to-success-pay-note" style={{ background: '#fef2f2', color: '#b91c1c' }}>
+            <span>Mohon maaf, QRIS belum dikonfigurasi. Silakan bayar ke kasir.</span>
+          </div>
+        )}
         <motion.button
           className="to-btn-primary"
-          style={{ marginTop: '2rem', maxWidth: '280px' }}
+          style={{ marginTop: '2rem', maxWidth: '280px', flex: '0 0 auto', padding: '14px 32px' }}
           onClick={() => { setCart([]); setShowCart(false); setShowCheckout(false); setPhase('browsing'); }}
           whileTap={{ scale: 0.97 }}
         >
@@ -318,6 +429,22 @@ export default function TableOrderPage() {
   // ── Browsing phase ──────────────────────────────────────────────────────────
   return (
     <div className="to-page">
+
+      {/* ── Bottom Navigation ── */}
+      <div className="to-bottom-nav">
+        <div className="to-bottom-item active">
+          <MenuIcon size={20} />
+          <span>Menu</span>
+        </div>
+        <div className="to-bottom-item" onClick={() => navigate('/member/orders')}>
+          <FileText size={20} />
+          <span>Transaksi</span>
+        </div>
+        <div className="to-bottom-item" onClick={() => navigate('/member/profile')}>
+          <User size={20} />
+          <span>Profile</span>
+        </div>
+      </div>
 
       {/* ── Header ── */}
       <header className="to-header">
@@ -357,10 +484,17 @@ export default function TableOrderPage() {
             <p>Tidak ada produk tersedia</p>
           </div>
         )}
-        {filtered.map(product => (
+        {filtered.map(product => {
+          let meta = null;
+          if (product.meta_data) {
+            try { meta = typeof product.meta_data === 'string' ? JSON.parse(product.meta_data) : product.meta_data; } catch(e) {}
+          }
+          const isPromo = !!meta?.promo_end_time;
+
+          return (
           <motion.div
             key={product.id}
-            className={`to-card ${product.stock === 0 ? 'to-card-sold' : ''}`}
+            className={`to-card ${product.stock === 0 ? 'to-card-sold' : ''} ${isPromo ? 'to-card-promo' : ''}`}
             whileTap={{ scale: product.stock === 0 ? 1 : 0.96 }}
             onClick={() => product.stock !== 0 && handleProductTap(product)}
           >
@@ -371,8 +505,30 @@ export default function TableOrderPage() {
             <div className="to-card-body">
               <p className="to-card-name">{product.name}</p>
               {product.description && <p className="to-card-desc">{product.description}</p>}
+              
+              {isPromo && (
+                <div className="to-promo-info">
+                  <div className="to-promo-time">
+                    <Clock size={12} />
+                    <span>Berakhir: {new Date(meta.promo_end_time).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  {meta.promo_rules && (
+                    <div className="to-promo-rules">
+                      * {meta.promo_rules}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="to-card-footer">
-                <span className="to-card-price">{fmt(product.price)}</span>
+                <span className="to-card-price">
+                  {getDiscountedPrice(product) < parseFloat(product.price) ? (
+                    <>
+                      <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.8em', marginRight: '4px' }}>{fmt(product.price)}</span>
+                      {fmt(getDiscountedPrice(product))}
+                    </>
+                  ) : fmt(product.price)}
+                </span>
                 {product.stock === 0
                   ? <span className="to-card-sold-badge">Habis</span>
                   : <span className="to-card-add"><Plus size={14} /></span>
@@ -380,7 +536,7 @@ export default function TableOrderPage() {
               </div>
             </div>
           </motion.div>
-        ))}
+        )})}
       </main>
 
       <div style={{ height: '90px' }} />
@@ -433,42 +589,87 @@ export default function TableOrderPage() {
                     <div key={group.id} className="to-opt-group">
                       <p className="to-opt-group-title">
                         {group.name}
-                        {group.required && <span className="to-required">Wajib</span>}
+                        {group.is_required ? <span className="to-required">Wajib</span> : <span className="to-optional">Opsional</span>}
                       </p>
                       <div className="to-options">
-                        {(group.options || []).map(opt => (
-                          <label key={opt.id} className={`to-option ${variantSelections[group.id]?.id === opt.id ? 'selected' : ''}`}>
-                            <input type="radio" name={`vg-${group.id}`}
-                              checked={variantSelections[group.id]?.id === opt.id}
-                              onChange={() => setVariantSelections(p => ({ ...p, [group.id]: opt }))}
-                            />
-                            <span className="to-option-name">{opt.name}</span>
-                            {Number(opt.price_add) > 0 && <span className="to-option-price">+{fmt(opt.price_add)}</span>}
-                          </label>
-                        ))}
+                        {(group.options || []).map(opt => {
+                          const curArr = variantSelections[group.id] || [];
+                          const checked = curArr.some(v => v.id === opt.id);
+                          const isMulti = group.max_select > 1 || group.max_select === null || group.max_select === 0;
+                          return (
+                            <label key={opt.id} className={`to-option ${checked ? 'selected' : ''}`}>
+                              <input type={isMulti ? "checkbox" : "radio"} name={isMulti ? undefined : `vg-${group.id}`}
+                                checked={checked}
+                                readOnly
+                                onClick={(e) => {
+                                  // For radio buttons, prevent default to handle the toggle ourselves
+                                  if (!isMulti && !group.is_required && checked) {
+                                    e.preventDefault();
+                                  }
+                                  setVariantSelections(p => {
+                                    const cur = p[group.id] || [];
+                                    if (isMulti) {
+                                      if (checked) return { ...p, [group.id]: cur.filter(v => v.id !== opt.id) };
+                                      if (group.max_select && cur.length >= group.max_select) return p;
+                                      return { ...p, [group.id]: [...cur, opt] };
+                                    } else {
+                                      if (!group.is_required && checked) return { ...p, [group.id]: [] };
+                                      return { ...p, [group.id]: [opt] };
+                                    }
+                                  });
+                                }}
+                              />
+                              <span className="to-option-name">{opt.name}</span>
+                              {Number(opt.price_modifier) > 0 && <span className="to-option-price">+{fmt(opt.price_modifier)}</span>}
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
 
                   {(variantData?.addon_groups || []).map(group => (
                     <div key={group.id} className="to-opt-group">
-                      <p className="to-opt-group-title">{group.name} <span className="to-optional">Opsional</span></p>
+                      <p className="to-opt-group-title">
+                        {group.name}
+                        {group.is_required ? <span className="to-required">Wajib</span> : <span className="to-optional">Opsional</span>}
+                      </p>
                       <div className="to-options">
                         {(group.addons || []).map(addon => {
-                          const checked = (addonSelections[group.id] || []).some(a => a.id === addon.id);
+                          const currentAddons = addonSelections[group.id] || [];
+                          const addonData = currentAddons.find(a => a.id === addon.id);
+                          const qty = addonData ? addonData.qty : 0;
                           return (
-                            <label key={addon.id} className={`to-option ${checked ? 'selected' : ''}`}>
-                              <input type="checkbox" checked={checked}
-                                onChange={() => setAddonSelections(p => {
+                            <div key={addon.id} className="to-addon-row" style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', border: '1px solid rgba(111,78,55,0.2)', borderRadius: '12px', background: qty > 0 ? 'var(--cafe-brown, #6F4E37)' : '#fff', color: qty > 0 ? '#fff' : 'inherit' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span className="to-option-name" style={{ fontWeight: '500' }}>{addon.name}</span>
+                                {Number(addon.price) > 0 && <span className="to-option-price" style={{ fontSize: '11px', color: qty > 0 ? '#ffedd5' : '#16a34a', fontWeight: '600' }}>+ {fmt(addon.price)}</span>}
+                              </div>
+                              {qty === 0 ? (
+                                <button type="button" onClick={() => setAddonSelections(p => {
                                   const cur = p[group.id] || [];
-                                  return { ...p, [group.id]: checked ? cur.filter(a => a.id !== addon.id) : [...cur, addon] };
-                                })}
-                              />
-                              <span className="to-option-name">{addon.name}</span>
-                              {Number(addon.price) > 0 && <span className="to-option-price">+{fmt(addon.price)}</span>}
-                            </label>
+                                  return { ...p, [group.id]: [...cur, { ...addon, qty: 1 }] };
+                                })} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '20px', background: 'rgba(111,78,55,0.1)', color: 'var(--cafe-brown)', border: 'none', fontWeight: 'bold' }}>Tambah</button>
+                              ) : (
+                                <div className="to-qty-ctrl sm" style={{ background: '#fff', borderRadius: '20px', display: 'flex', alignItems: 'center', padding: '2px', gap: '4px' }}>
+                                  <button type="button" className="to-qty-btn sm" style={{ color: 'var(--cafe-brown)' }} onClick={() => setAddonSelections(p => {
+                                    const cur = p[group.id] || [];
+                                    if (qty === 1) return { ...p, [group.id]: cur.filter(a => a.id !== addon.id) };
+                                    return { ...p, [group.id]: cur.map(a => a.id === addon.id ? { ...a, qty: qty - 1 } : a) };
+                                  })}><Minus size={12} /></button>
+                                  <span className="to-qty-val" style={{ color: 'var(--cafe-brown)', minWidth: '16px', textAlign: 'center' }}>{qty}</span>
+                                  <button type="button" className="to-qty-btn sm" style={{ color: 'var(--cafe-brown)' }} onClick={() => setAddonSelections(p => {
+                                    const cur = p[group.id] || [];
+                                    const maxQty = addon.max_qty || 99;
+                                    if (qty >= maxQty) return p;
+                                    return { ...p, [group.id]: cur.map(a => a.id === addon.id ? { ...a, qty: qty + 1 } : a) };
+                                  })}><Plus size={12} /></button>
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
+                              
                       </div>
                     </div>
                   ))}
@@ -641,10 +842,10 @@ function CheckoutPanel({
             <p className="to-section-title">Metode Pembayaran</p>
             <div className="to-pay-methods">
               {paymentMethods.map(pm => (
-                <label key={pm.id || pm.code} className={`to-pay-method ${selectedPayment === (pm.id || pm.code) ? 'selected' : ''}`}>
-                  <input type="radio" name="pmm" value={pm.id || pm.code}
-                    checked={selectedPayment === (pm.id || pm.code)}
-                    onChange={() => setSelectedPayment(pm.id || pm.code)} />
+                <label key={pm.code || pm.id} className={`to-pay-method ${selectedPayment === (pm.code || pm.id) ? 'selected' : ''}`}>
+                  <input type="radio" name="pmm" value={pm.code || pm.id}
+                    checked={selectedPayment === (pm.code || pm.id)}
+                    onChange={() => setSelectedPayment(pm.code || pm.id)} />
                   <span>{pm.name}</span>
                 </label>
               ))}

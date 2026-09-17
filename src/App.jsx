@@ -11,6 +11,7 @@ import MemberLoginPage from './pages/member/MemberLoginPage';
 import MemberProfilePage from './pages/member/MemberProfilePage';
 import MemberTopupPage from './pages/member/MemberTopupPage';
 import MemberOrdersPage from './pages/member/MemberOrdersPage';
+import MemberOrderDetailPage from './pages/member/MemberOrderDetailPage';
 import MemberBookingsPage from './pages/member/MemberBookingsPage';
 import BranchSelectorPage from './pages/BranchSelectorPage';
 import KasirLoginPage from './pages/kasir/KasirLoginPage';
@@ -47,6 +48,10 @@ export default function App() {
             <Route
               path="/member/orders"
               element={<RequireMember><MemberOrdersPage /></RequireMember>}
+            />
+            <Route
+              path="/member/orders/:id"
+              element={<RequireMember><MemberOrderDetailPage /></RequireMember>}
             />
             <Route
               path="/member/topup"

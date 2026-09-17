@@ -1,5 +1,9 @@
 // Motion disabled for better UX
-import { ShoppingBag, RefreshCw, Loader } from 'lucide-react';
+import { ShoppingBag, RefreshCw, Loader, X, FileText, Clock, Utensils, CreditCard, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../lib/api';
+import { QRCodeSVG } from 'qrcode.react';
+import { generateDynamicQris } from '../../lib/qris';
 import { useFetch } from '../../hooks/useApi';
 import MemberLayout from './MemberLayout';
 import './member.css';
@@ -28,6 +32,8 @@ const PAY_STATUS = {
 };
 
 export default function MemberOrdersPage() {
+  const navigate = useNavigate();
+
   // Try member-specific endpoint first, fall back to generic orders
   const { data: memberOrdersData, loading: memberLoading, error: memberError, refetch: refetchMember } =
     useFetch('/members/orders');
@@ -37,6 +43,8 @@ export default function MemberOrdersPage() {
     useFetch(useFallback ? '/orders?limit=20' : null);
 
   const loading = memberLoading || (useFallback && fallbackLoading);
+
+  
   const orders = useFallback
     ? (fallbackData?.orders || [])
     : (memberOrdersData?.orders || memberOrdersData?.data || []);
@@ -70,6 +78,8 @@ export default function MemberOrdersPage() {
               <div
                 key={order.id || idx}
                 className="list-card"
+                onClick={() => navigate('/member/orders/' + order.id)}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="list-card-top">
                   <div>
@@ -122,6 +132,7 @@ export default function MemberOrdersPage() {
           })
         )}
       </div>
-    </MemberLayout>
+    
+      </MemberLayout>
   );
 }

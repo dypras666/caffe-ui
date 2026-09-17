@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Coffee, MapPin, Phone, Mail } from 'lucide-react';
 import './Footer.css';
@@ -22,6 +23,33 @@ const TwitterIcon = ({ size }) => (
 );
 
 const Footer = () => {
+  const [settings, setSettings] = useState({
+    cafe_name: 'Café Azzura',
+    cafe_address: '123 Coffee Street, Brew City, BC 12345',
+    contact_phone: '+1 (555) 123-4567',
+    contact_email: 'info@cafeazzura.com',
+    site_logo: null
+  });
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(d => {
+        if (d.settings) {
+          setSettings(prev => {
+            const s = { ...prev };
+            d.settings.forEach(x => {
+              if (['cafe_name', 'cafe_address', 'contact_phone', 'contact_email', 'site_logo'].includes(x.setting_key)) {
+                s[x.setting_key] = x.setting_value;
+              }
+            });
+            return s;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const socialLinks = [
     { icon: <InstagramIcon size={24} />, name: 'Instagram' },
     { icon: <FacebookIcon size={24} />, name: 'Facebook' },
@@ -41,9 +69,16 @@ const Footer = () => {
           <motion.div
             className="footer-logo"
             whileHover={{ scale: 1.1, rotate: 5 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            <Coffee size={40} />
-            <h3>Café Azzura</h3>
+            {settings.site_logo ? (
+              <img src={settings.site_logo} alt={settings.cafe_name} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+            ) : (
+              <>
+                <Coffee size={40} />
+                <h3>{settings.cafe_name}</h3>
+              </>
+            )}
           </motion.div>
           <p>Where Every Sip Tells a Story</p>
           <p className="footer-description">
@@ -80,15 +115,15 @@ const Footer = () => {
           <div className="contact-info">
             <div className="contact-item">
               <MapPin size={20} />
-              <p>123 Coffee Street, Brew City, BC 12345</p>
+              <p>{settings.cafe_address}</p>
             </div>
             <div className="contact-item">
               <Phone size={20} />
-              <p>+1 (555) 123-4567</p>
+              <p>{settings.contact_phone}</p>
             </div>
             <div className="contact-item">
               <Mail size={20} />
-              <p>info@cafeazzura.com</p>
+              <p>{settings.contact_email}</p>
             </div>
           </div>
         </motion.div>
@@ -138,7 +173,7 @@ const Footer = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <p>&copy; 2026 Café Azzura. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} {settings.cafe_name}. All rights reserved.</p>
         <p>Made with <Heart size={16} className="heart" /> and lots of coffee</p>
       </motion.div>
 

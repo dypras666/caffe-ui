@@ -19,6 +19,7 @@ export const useFetch = (endpoint, deps = []) => {
       setData(res.data);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -32,16 +33,19 @@ export const useFetch = (endpoint, deps = []) => {
 // Menu from real backend — GET /products?is_available=true
 export const useMenu = () => {
   if (IS_DEMO) {
-    const categories = DEMO_PRODUCTS.reduce((acc, item) => {
+    const list = Array.isArray(DEMO_PRODUCTS) ? DEMO_PRODUCTS : [];
+    const categories = list.reduce((acc, item) => {
       const cat = item.category_name || 'Lainnya';
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(item);
       return acc;
     }, {});
-    return { data: DEMO_PRODUCTS, categories, loading: false, error: null };
+    return { data: list, categories, loading: false, error: null };
   }
   const { data, loading, error } = useFetch('/products?limit=100');
-  const products = data?.products || data || [];
+  const products = Array.isArray(data?.products)
+    ? data.products
+    : (Array.isArray(data) ? data : []);
 
   // Group by category_name
   const categories = products.reduce((acc, item) => {
@@ -63,7 +67,14 @@ export const useReviews = () => ({ data: [], loading: false, error: null });
 // Gallery
 export const useGallery = () => {
   if (IS_DEMO) return { data: DEMO_GALLERY, loading: false, error: null };
-  return useFetch('/media');
+  const fetchResult = useFetch('/media');
+  const rawData = fetchResult.data;
+  const galleryItems = Array.isArray(rawData?.files)
+    ? rawData.files
+    : (Array.isArray(rawData?.media)
+      ? rawData.media
+      : (Array.isArray(rawData) ? rawData : (fetchResult.error ? DEMO_GALLERY : [])));
+  return { ...fetchResult, data: galleryItems };
 };
 
 // Events — no backend yet, static
@@ -79,8 +90,13 @@ export const useStats = () => useFetch('/dashboard/stats');
 export const useSettings = () => {
   if (IS_DEMO) return DEMO_SETTINGS;
   const { data } = useFetch('/settings');
-  const settings = (data?.settings || []).reduce((acc, s) => {
-    acc[s.setting_key] = s.setting_value;
+  const settingsList = Array.isArray(data?.settings)
+    ? data.settings
+    : (Array.isArray(data) ? data : []);
+  const settings = settingsList.reduce((acc, s) => {
+    if (s && s.setting_key) {
+      acc[s.setting_key] = s.setting_value;
+    }
     return acc;
   }, {});
   return settings;

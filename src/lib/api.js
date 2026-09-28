@@ -17,7 +17,13 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // If the server returned HTML (e.g. 404/fallback index.html from SPA router), treat as error
+    if (typeof res.data === 'string' && res.data.trim().startsWith('<')) {
+      return Promise.reject(new Error('Invalid API response format (HTML received instead of JSON)'));
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('cafe_member_token');

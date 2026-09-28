@@ -34,7 +34,7 @@ const Gallery = () => {
       </motion.div>
 
       <div className="gallery-grid">
-        {galleryItems && galleryItems.map((item, index) => (
+        {Array.isArray(galleryItems) && galleryItems.map((item, index) => (
           <motion.div
             key={item.id}
             className="gallery-item"

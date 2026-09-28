@@ -31,8 +31,10 @@ export default function MemberTopupPage() {
   const { data: settingsData } = useFetch('/settings');
   const { data: payMethodsData } = useFetch('/payments/methods');
 
-  const settings = (settingsData?.settings || []).reduce((acc, s) => {
-    acc[s.setting_key] = s.setting_value;
+  const settings = (Array.isArray(settingsData?.settings) ? settingsData.settings : []).reduce((acc, s) => {
+    if (s && s.setting_key) {
+      acc[s.setting_key] = s.setting_value;
+    }
     return acc;
   }, {});
 

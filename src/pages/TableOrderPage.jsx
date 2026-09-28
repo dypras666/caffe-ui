@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Coffee, ShoppingCart, Plus, Minus, X, CheckCircle, Loader,
-  CreditCard, Banknote, ChevronDown, ChevronRight, Clock, Receipt, User, FileText, Menu as MenuIcon
+  CreditCard, Banknote, ChevronDown, ChevronRight, Clock, Receipt, User, FileText, Menu as MenuIcon, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +72,13 @@ export default function TableOrderPage() {
 
   // Success
   const [orderResult, setOrderResult] = useState(null);
+
+  // In-app Toast notification (no alert)
+  const [toastMsg, setToastMsg] = useState(null);
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   // ── Phase 1: Validate QR on mount ──────────────────────────────────────────
   useEffect(() => {
@@ -238,7 +245,7 @@ export default function TableOrderPage() {
       }
     });
     if (missing) {
-      alert(`Harap pilih opsi untuk ${missing}`);
+      showToast(`Harap pilih opsi untuk ${missing}`);
       return;
     }
 
@@ -429,6 +436,38 @@ export default function TableOrderPage() {
   // ── Browsing phase ──────────────────────────────────────────────────────────
   return (
     <div className="to-page">
+      {/* Toast Notification Banner */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            style={{
+              position: 'fixed',
+              top: 16,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 99999,
+              background: '#0f172a',
+              color: '#f8fafc',
+              padding: '10px 18px',
+              borderRadius: '999px',
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
+              fontSize: '13px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              maxWidth: '90vw',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            <AlertCircle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
+            <span>{toastMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Bottom Navigation ── */}
       <div className="to-bottom-nav">
@@ -490,14 +529,35 @@ export default function TableOrderPage() {
             try { meta = typeof product.meta_data === 'string' ? JSON.parse(product.meta_data) : product.meta_data; } catch(e) {}
           }
           const isPromo = !!meta?.promo_end_time;
+          const isService = product.product_type === 'service';
+          const isSold = !isService && product.stock === 0;
 
           return (
           <motion.div
             key={product.id}
-            className={`to-card ${product.stock === 0 ? 'to-card-sold' : ''} ${isPromo ? 'to-card-promo' : ''}`}
-            whileTap={{ scale: product.stock === 0 ? 1 : 0.96 }}
-            onClick={() => product.stock !== 0 && handleProductTap(product)}
+            className={`to-card ${isSold ? 'to-card-sold' : ''} ${isPromo ? 'to-card-promo' : ''}`}
+            whileTap={{ scale: isSold ? 1 : 0.96 }}
+            onClick={() => !isSold && handleProductTap(product)}
+            style={{ position: 'relative' }}
           >
+            {isService && (
+              <span style={{
+                position: 'absolute',
+                top: 8,
+                left: 8,
+                background: '#7c3aed',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: '6px',
+                zIndex: 2,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}>
+                {product.service_type === 'booking' ? 'Booking' : product.service_type === 'preorder' ? 'Pre-Order' : 'Layanan'}
+                {product.duration_minutes ? ` • ${product.duration_minutes}m` : ''}
+              </span>
+            )}
             {product.image || product.image_url
               ? <img className="to-card-img" src={mediaUrl(product.image || product.image_url)} alt={product.name} loading="lazy" />
               : <div className="to-card-img-placeholder"><Coffee size={28} /></div>
@@ -529,7 +589,7 @@ export default function TableOrderPage() {
                     </>
                   ) : fmt(product.price)}
                 </span>
-                {product.stock === 0
+                {isSold
                   ? <span className="to-card-sold-badge">Habis</span>
                   : <span className="to-card-add"><Plus size={14} /></span>
                 }
